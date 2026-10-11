@@ -42,27 +42,22 @@ def analyze_sentiment(state: CustomerFeedbackState) -> dict:
 
     response = llm.invoke(
         f"""
-You are a customer feedback sentiment specialist.
+I’m going through this customer feedback and trying to understand the overall feeling.
 
-Analyze the following customer feedback:
-
-{state.customer_feedback}
-
-Classify the feedback into:
-
+Please read the feedback below and decide if it feels mostly:
 - POSITIVE
 - NEUTRAL
 - NEGATIVE
 
-You can identify multiple sentiments if the feedback contains
-different comments.
+It is okay if there are more than one feeling in the same feedback, especially if different parts of it sound different.
 
-For each sentiment provide:
+For each feeling, give:
+1. the sentiment label
+2. a bit of evidence from the feedback
+3. a short explanation
 
-1. The sentiment
-2. Supporting evidence from the feedback
-3. A short explanation
-
+Customer feedback:
+{state.customer_feedback}
 """
     )
 
@@ -82,32 +77,28 @@ def extract_feedback_themes(state: CustomerFeedbackState) -> dict:
 
     response = llm.invoke(
         f"""
-You are a customer feedback theme specialist.
+I want to spot the main patterns in this feedback, not just the random comments.
 
-Analyze these customer reviews or survey responses:
+Please look at the customer reviews or survey answers below and find the repeated themes.
 
+Customer feedback:
 {state.customer_feedback}
 
-Identify recurring product or service themes.
+For each theme, include:
+1. theme name
+2. roughly how often it seems to come up
+3. one example from the feedback
+4. whether it feels positive, negative, or mixed
 
-For each theme provide:
-
-1. Theme name
-2. Number or approximate frequency of mentions if possible
-3. Example evidence from the feedback
-4. Whether the theme is positive, negative, or mixed
-
-Focus on recurring themes such as:
-
-- Product quality
-- Pricing
-- Customer service
-- Delivery
-- Performance
-- Usability
-- Reliability
-- Support
-
+I’m mainly looking for common topics like:
+- product quality
+- pricing
+- customer service
+- delivery
+- performance
+- usability
+- reliability
+- support
 """
     )
 
@@ -128,32 +119,27 @@ def identify_customer_requests(state: CustomerFeedbackState) -> dict:
 
     response = llm.invoke(
         f"""
-You are a customer request specialist.
+I’m trying to pull out what the customer is actually asking for from this feedback.
 
-Analyze the following customer feedback:
+Please read the comments below and find any clear or strongly implied requests.
 
+Look for things like:
+- feature requests
+- product fixes
+- service improvements
+- support needs
+- complaints that need follow-up
+
+Customer feedback:
 {state.customer_feedback}
 
-Extract explicit or strongly implied customer requests.
+For each request, include:
+1. the request
+2. evidence from the feedback
+3. priority: HIGH, MEDIUM, or LOW
 
-Look for:
-
-- Feature requests
-- Product fixes
-- Service improvements
-- Support needs
-- Complaints requiring follow-up
-
-For each request provide:
-
-1. Request
-2. Evidence from the feedback
-3. Priority: HIGH, MEDIUM, or LOW
-
-If there are no clear requests, say:
-
+If there is nothing clear, just say:
 "No specific customer requests identified."
-
 """
     )
 
@@ -174,9 +160,9 @@ def assess_customer_health(state: CustomerFeedbackState) -> dict:
 
     response = llm.invoke(
         f"""
-You are a customer success decision system.
+I’m trying to decide whether this should be treated as a normal issue or something that needs urgent attention.
 
-Evaluate the customer's overall health using the analysis below.
+Here is the feedback and the earlier analysis:
 
 ORIGINAL FEEDBACK:
 {state.customer_feedback}
@@ -190,26 +176,21 @@ THEMES:
 CUSTOMER REQUESTS:
 {state.customer_requests}
 
-Classify customer health as exactly one of:
+Please classify the customer health as exactly one of these:
+- NORMAL
+- URGENT
 
-NORMAL
-URGENT
+Use URGENT if the feedback shows real customer risk, like:
+- strong dissatisfaction
+- repeated serious complaints
+- risk of churn or cancellation
+- major product or service failure
+- a problem causing big business impact
+- something that clearly needs immediate follow-up
 
-Use URGENT when the feedback indicates significant customer risk,
-such as:
+Use NORMAL if this looks more like normal product feedback or improvement opportunities without immediate risk.
 
-- Strong dissatisfaction
-- Repeated serious complaints
-- Threat of cancellation or churn
-- Critical product/service failure
-- Unresolved issue causing major business impact
-- Escalation requiring immediate customer attention
-
-Use NORMAL when the feedback represents normal product/service
-improvement opportunities without immediate customer risk.
-
-Return ONLY valid JSON:
-
+Please return valid JSON only, like this:
 {{
     "customer_health": "NORMAL or URGENT",
     "reason": "one or two sentence explanation"
@@ -244,9 +225,7 @@ def improvement_summary(state: CustomerFeedbackState) -> dict:
 
     response = llm.invoke(
         f"""
-You are a customer experience analyst.
-
-Create an improvement summary from the following customer feedback.
+I’m putting together a simple summary of what the customer feedback is really saying.
 
 FEEDBACK:
 {state.customer_feedback}
@@ -260,14 +239,12 @@ THEMES:
 CUSTOMER REQUESTS:
 {state.customer_requests}
 
-Create a concise summary containing:
-
-1. Overall sentiment
-2. Main recurring themes
-3. Customer requests
-4. Improvement opportunities
-5. Suggested next steps
-
+Please write a short summary with these parts:
+1. overall sentiment
+2. main recurring themes
+3. customer requests
+4. improvement opportunities
+5. suggested next steps
 """
     )
 
@@ -291,9 +268,7 @@ def urgent_customer_action_plan(state: CustomerFeedbackState) -> dict:
 
     response = llm.invoke(
         f"""
-You are a customer success manager handling an urgent customer issue.
-
-Create an urgent customer action plan.
+This looks serious, so I’m drafting a short action plan for the team.
 
 CUSTOMER FEEDBACK:
 {state.customer_feedback}
@@ -310,18 +285,15 @@ CUSTOMER REQUESTS:
 HEALTH REASON:
 {state.health_reason}
 
-Create an action plan containing:
+Please create a practical action plan with these sections:
+1. urgent issue
+2. evidence from the customer feedback
+3. immediate action required
+4. team or function that should look into it
+5. customer communication needed
+6. follow-up recommendation
 
-1. Urgent issue
-2. Evidence from customer feedback
-3. Immediate action required
-4. Team or function that should investigate
-5. Customer communication needed
-6. Follow-up recommendation
-
-Keep the plan practical and concise.
-
-Do not invent facts that are not supported by the feedback.
+Keep it concise and only use things that are actually supported by the feedback.
 """
     )
 
